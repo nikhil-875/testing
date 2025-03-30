@@ -1,0 +1,42 @@
+definitions:
+  services:
+    docker:
+      image: docker:dind
+
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Build & Push Docker Image
+          image: atlassian/default-image:4
+          runs-on:
+            - self.hosted
+            - linux
+          services:
+            - docker
+          script:
+            - echo "Setting up Docker Buildx..."
+            - export DOCKER_CLI_EXPERIMENTAL=enabled
+            - export BUILDX_VERSION=0.11.0
+            
+            - curl -fsSLO https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-arm64
+            - mkdir -p $HOME/.docker/cli-plugins/
+            - mv buildx-v${BUILDX_VERSION}.linux-arm64 $HOME/.docker/cli-plugins/docker-buildx
+            - chmod +x $HOME/.docker/cli-plugins/docker-buildx
+            
+            - docker run --privileged --rm tonistiigi/binfmt --install arm64,riscv64,arm
+            - docker buildx create --use
+
+            - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
+            - docker buildx build -t $DOCKER_HUB_USER/$PROJECT_NAME:$BITBUCKET_COMMIT --platform linux/arm64 --push .
+
+      - step:
+          name: Kubernetes Deployment
+          deployment: Production
+          image: lachlanevenson/k8s-kubectl
+          runs-on:
+            - self.hosted
+            - linux
+          script:
+            - kubectl --server=$KUBERNETES_SERVER --token=$KUBERNETES_TOKEN set image deployment/$PROJECT_NAME-deployment $PROJECT_NAME=$DOCKER_HUB_USER/$PROJECT_NAME:$BITBUCKET_COMMIT -n $PROJECT_NAME-ns
+            - kubectl --server=$KUBERNETES_SERVER --token=$KUBERNETES_TOKEN rollout restart deployment/$PROJECT_NAME-deployment -n $PROJECT_NAME-ns

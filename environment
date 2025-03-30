@@ -1,0 +1,29 @@
+export function getFlowIdByPhoneNumber(phone_number_id: string): Record<string, string> | null {
+  if (phone_number_id === '587965997722519') {
+    return {
+      "Unit - Details": "1244897167250804",
+      "Payment Status": "1894538851370969",
+      "Tenant - Property": "23992118790376903",
+      "Unit - Rent": "1342805840354521",
+      "Tenant - Personal Details": "1816624492448771",
+      "Tenants": "1199619994857075",
+      "Unit - Rooms": "1331368504747427",
+      "Units": "9362474553844389",
+      "Properties": "1176744643678091",
+      "Company": "659753106452538",
+      "Users": "2499979030335198",
+      "Property clone": "547388131715230",
+      "Flat": "1704718170482953",
+      "Property": "633325596334768",
+      "Time Setting": "9022097374585418",
+      "Financial Settings": "1041374344703968",
+      "Invoice": "626822426729476",
+      "Expense": "1020130190022508",
+      "Appointment": "1167069631010802"
+    };
+  } else if (phone_number_id === '611178468739703') {
+    return null;
+  }
+
+  return null;
+}
